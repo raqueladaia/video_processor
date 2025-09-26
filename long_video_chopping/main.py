@@ -103,12 +103,7 @@ def main():
             print(f"Will create {num_chunks} chunk(s) of {duration_seconds} seconds each")
 
             if video_info['duration'] > duration_seconds:
-                # Confirm processing for this video
-                if len(video_files) > 1:
-                    if not get_yes_no_choice(f"Process this video?", default=True):
-                        print(f"Skipping {Path(video_file).name}")
-                        continue
-
+                
                 # Process the video
                 success = processor.split_video(video_file, duration_seconds)
 

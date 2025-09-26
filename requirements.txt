@@ -1,0 +1,16 @@
+# Video processing
+opencv-python>=4.8.0
+moviepy>=1.0.3
+
+# Excel file handling
+pandas>=2.0.0
+openpyxl>=3.1.0
+
+# File and path handling
+pathlib2>=2.3.7
+
+# Progress bars and user interface
+tqdm>=4.65.0
+
+# Additional utilities
+numpy>=1.24.0

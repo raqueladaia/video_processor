@@ -78,8 +78,8 @@ def main():
         # Create output directory if it doesn't exist
         Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-        # Process each video file
-        processor = VideoProcessor(output_dir)
+        # Process each video file (use FFmpeg for fast processing by default)
+        processor = VideoProcessor(output_dir, use_ffmpeg=True)
 
         print_section_header("Processing Videos")
 

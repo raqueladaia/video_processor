@@ -22,10 +22,16 @@ from shared.user_interface import (
 from shared.file_utils import find_video_files, validate_input_path, create_output_directory
 from shared.video_utils import get_video_info, format_duration
 
-from excel_parser import ExcelParser
-from video_extractor import VideoExtractor
-from csv_manager import CSVManager
-from file_manager import FileManager
+try:
+    from .excel_parser import ExcelParser
+    from .video_extractor import VideoExtractor
+    from .csv_manager import CSVManager
+    from .file_manager import FileManager
+except ImportError:
+    from excel_parser import ExcelParser
+    from video_extractor import VideoExtractor
+    from csv_manager import CSVManager
+    from file_manager import FileManager
 
 
 def main():

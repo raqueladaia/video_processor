@@ -8,7 +8,7 @@ specific timestamps with configurable before/after durations.
 import os
 from pathlib import Path
 from typing import Dict, Any, Optional
-from moviepy.editor import VideoFileClip
+from moviepy import VideoFileClip
 
 import sys
 sys.path.append(str(Path(__file__).parent.parent))

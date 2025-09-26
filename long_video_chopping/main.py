@@ -20,7 +20,10 @@ from shared.user_interface import (
 )
 from shared.file_utils import find_video_files, validate_input_path
 from shared.video_utils import get_video_info, format_duration, calculate_chunks
-from video_processor import VideoProcessor
+try:
+    from .video_processor import VideoProcessor
+except ImportError:
+    from video_processor import VideoProcessor
 
 
 def main():

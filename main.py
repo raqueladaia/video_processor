@@ -113,7 +113,7 @@ if __name__ == "__main__":
     if "--check-deps" in sys.argv:
         print_section_header("Dependency Check")
         if check_dependencies():
-            print("✓ All required dependencies are installed.")
+            print("All required dependencies are installed.")
         sys.exit(0)
 
     # Optional: Print system info

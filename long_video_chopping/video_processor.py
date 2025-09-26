@@ -10,7 +10,7 @@ import shutil
 from pathlib import Path
 from typing import Optional
 import cv2
-from moviepy.editor import VideoFileClip
+from moviepy import VideoFileClip
 
 import sys
 sys.path.append(str(Path(__file__).parent.parent))

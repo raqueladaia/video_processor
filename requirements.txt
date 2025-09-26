@@ -1,6 +1,5 @@
 # Video processing
 opencv-python>=4.8.0
-moviepy>=1.0.3
 
 # Excel file handling
 pandas>=2.0.0
@@ -14,3 +13,6 @@ tqdm>=4.65.0
 
 # Additional utilities
 numpy>=1.24.0
+
+# GUI dependencies
+Pillow>=9.0.0

@@ -1,9 +1,10 @@
 """
 Main entry point for Video Processing Tools.
 
-This script provides a unified interface to access both video processing programs:
+This script provides a unified interface to access video processing programs:
 1. Long Video Chopping - Segments videos into smaller chunks
 2. Snippet Selection - Extracts snippets around specific timestamps
+3. Adjust Brightness - GUI tool for adjusting video brightness and contrast
 
 Author: Video Processing Project
 """
@@ -23,7 +24,7 @@ def main():
     try:
         print_section_header("Video Processing Tools")
         print("Welcome to the Video Processing Toolkit!")
-        print("This toolkit provides two main video processing capabilities:\n")
+        print("This toolkit provides three main video processing capabilities:\n")
 
         print("1. Long Video Chopping:")
         print("   - Segments long videos into smaller consecutive chunks")
@@ -37,10 +38,16 @@ def main():
         print("   - Configurable before/after duration")
         print("   - Generates CSV reports with metadata\n")
 
+        print("3. Adjust Brightness:")
+        print("   - GUI tool for adjusting video brightness and contrast")
+        print("   - Real-time preview with intelligent suggestions")
+        print("   - Batch processing for multiple videos")
+        print("   - Quality-preserving video processing\n")
+
         # Get user choice
         choice = get_choice_from_list(
             "Which tool would you like to use?",
-            ["Long Video Chopping", "Snippet Selection", "Exit"]
+            ["Long Video Chopping", "Snippet Selection", "Adjust Brightness", "Exit"]
         )
 
         if choice == "Long Video Chopping":
@@ -66,6 +73,18 @@ def main():
                 print("Please ensure all required files are present.")
             except Exception as e:
                 print(f"Error running Snippet Selection: {e}")
+
+        elif choice == "Adjust Brightness":
+            print_section_header("Starting Adjust Brightness")
+            try:
+                # Import and run adjust brightness
+                from adjust_brightness import main as ab_main
+                ab_main()
+            except ImportError:
+                print("Error: Adjust Brightness module not found.")
+                print("Please ensure all required files are present.")
+            except Exception as e:
+                print(f"Error running Adjust Brightness: {e}")
 
         elif choice == "Exit":
             print("Thank you for using Video Processing Tools!")

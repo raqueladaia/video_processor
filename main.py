@@ -5,6 +5,7 @@ This script provides a unified interface to access video processing programs:
 1. Long Video Chopping - Segments videos into smaller chunks
 2. Snippet Selection - Extracts snippets around specific timestamps
 3. Adjust Brightness - GUI tool for adjusting video brightness and contrast
+4. Crop Video - GUI tool for cropping videos into multiple regions
 
 Author: Video Processing Project
 """
@@ -24,7 +25,7 @@ def main():
     try:
         print_section_header("Video Processing Tools")
         print("Welcome to the Video Processing Toolkit!")
-        print("This toolkit provides three main video processing capabilities:\n")
+        print("This toolkit provides four main video processing capabilities:\n")
 
         print("1. Long Video Chopping:")
         print("   - Segments long videos into smaller consecutive chunks")
@@ -44,10 +45,16 @@ def main():
         print("   - Batch processing for multiple videos")
         print("   - Quality-preserving video processing\n")
 
+        print("4. Crop Video:")
+        print("   - GUI tool for cropping videos into multiple regions")
+        print("   - Interactive rectangle drawing on video frames")
+        print("   - Multi-region support with custom naming")
+        print("   - Batch processing and template saving\n")
+
         # Get user choice
         choice = get_choice_from_list(
             "Which tool would you like to use?",
-            ["Long Video Chopping", "Snippet Selection", "Adjust Brightness", "Exit"]
+            ["Long Video Chopping", "Snippet Selection", "Adjust Brightness", "Crop Video", "Exit"]
         )
 
         if choice == "Long Video Chopping":
@@ -85,6 +92,18 @@ def main():
                 print("Please ensure all required files are present.")
             except Exception as e:
                 print(f"Error running Adjust Brightness: {e}")
+
+        elif choice == "Crop Video":
+            print_section_header("Starting Crop Video")
+            try:
+                # Import and run crop video
+                from crop_video import main as cv_main
+                cv_main()
+            except ImportError:
+                print("Error: Crop Video module not found.")
+                print("Please ensure all required files are present.")
+            except Exception as e:
+                print(f"Error running Crop Video: {e}")
 
         elif choice == "Exit":
             print("Thank you for using Video Processing Tools!")

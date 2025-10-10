@@ -2,13 +2,14 @@
 Video extraction module for creating snippets around timestamps.
 
 This module handles extracting video snippets from larger videos based on
-specific timestamps with configurable before/after durations.
+specific timestamps with configurable before/after durations using FFmpeg
+for fast, lossless extraction.
 """
 
 import os
+import subprocess
 from pathlib import Path
 from typing import Dict, Any, Optional
-from moviepy import VideoFileClip
 
 import sys
 sys.path.append(str(Path(__file__).parent.parent))
@@ -19,10 +20,11 @@ from shared.video_utils import format_duration
 
 class VideoExtractor:
     """
-    Handles extraction of video snippets around specific timestamps.
+    Handles extraction of video snippets around specific timestamps using FFmpeg.
 
     Creates video snippets with specified duration before and after
-    each timestamp, saving them with descriptive filenames.
+    each timestamp, saving them with descriptive filenames in the format:
+    {animal_id}_{pain|nonpain}_{timestamp}.{ext}
     """
 
     def __init__(self, output_dir: str, before_duration: float, after_duration: float):
@@ -42,7 +44,9 @@ class VideoExtractor:
     def extract_snippet(self, video_path: str, video_name: str,
                        timestamp_info: Dict[str, Any], video_duration: float) -> bool:
         """
-        Extract a snippet from a video around a specific timestamp.
+        Extract a snippet from a video around a specific timestamp using FFmpeg.
+
+        Creates snippets with filename format: {animal_id}_{pain|nonpain}_{timestamp}.{ext}
 
         Args:
             video_path (str): Path to the source video file
@@ -65,16 +69,16 @@ class VideoExtractor:
                 print(f"Warning: Snippet too short ({end_time - start_time:.1f}s), skipping")
                 return False
 
-            # Generate output filename
-            timestamp_hhmmss = self._seconds_to_hhmmss(timestamp_seconds)
+            # Generate output filename using new convention: {animal_id}_{pain|nonpain}_{timestamp}.{ext}
+            animal_id = timestamp_info.get('animal_id', video_name)
             arousal_type = timestamp_info.get('arousal_type', '')
+            timestamp_hhmmss = self._seconds_to_hhmmss(timestamp_seconds)
 
-            # Create filename with timestamp
-            filename_parts = [video_name, timestamp_hhmmss]
+            # Build filename parts: animal_id, arousal_type (if present), timestamp
+            filename_parts = [animal_id]
             if arousal_type:
-                # Sanitize arousal type for filename
-                safe_arousal = sanitize_filename(arousal_type)
-                filename_parts.append(safe_arousal)
+                filename_parts.append(arousal_type)
+            filename_parts.append(timestamp_hhmmss)
 
             snippet_filename = "_".join(filename_parts) + Path(video_path).suffix
             snippet_path = os.path.join(self.output_dir, snippet_filename)
@@ -88,19 +92,26 @@ class VideoExtractor:
             print(f"Extracting snippet: {format_duration(start_time)} - {format_duration(end_time)}")
             print(f"Output: {Path(snippet_path).name}")
 
-            # Extract the snippet using MoviePy
-            with VideoFileClip(video_path) as video:
-                snippet = video.subclip(start_time, end_time)
+            # Extract the snippet using FFmpeg (fast, lossless)
+            duration = end_time - start_time
 
-                # Write the snippet
-                snippet.write_videofile(
-                    snippet_path,
-                    audio_codec='aac',
-                    verbose=False,
-                    logger=None
-                )
+            cmd = [
+                'ffmpeg',
+                '-i', video_path,
+                '-ss', str(start_time),
+                '-t', str(duration),
+                '-c', 'copy',  # Copy streams without re-encoding
+                '-avoid_negative_ts', 'make_zero',
+                '-y',  # Overwrite output files
+                snippet_path
+            ]
 
-                snippet.close()
+            # Run FFmpeg command
+            result = subprocess.run(cmd, capture_output=True, text=True)
+
+            if result.returncode != 0:
+                print(f"FFmpeg error: {result.stderr}")
+                return False
 
             # Store the path for CSV recording
             self.last_created_snippet_path = snippet_path

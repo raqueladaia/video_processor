@@ -23,14 +23,17 @@ class ExcelParser:
 
     def __init__(self):
         """Initialize ExcelParser."""
-        self.timestamp_columns = ['time', 'timestamp', 'time_of_interest', 'start_time']
+        self.timestamp_columns = ['time', 'timestamp', 'time_of_interest', 'start_time', 'time_awakening_onset']
         self.video_name_columns = ['video', 'video_name', 'file', 'filename', 'file_name']
-        self.arousal_columns = ['arousal', 'arousal_type', 'type', 'category']
+        self.arousal_columns = ['arousal', 'arousal_type', 'type', 'category', 'attention_to_left_hindpaw', 'attention_to_left_paw']
         self.comment_columns = ['comment', 'comments', 'description', 'notes']
 
     def parse_excel(self, excel_path: str) -> Dict[str, List[Dict[str, Any]]]:
         """
         Parse Excel file and extract timestamp data.
+
+        Reads all sheets in the Excel file and combines the data.
+        Handles forward-filling of video names and extracts animal_id from video names.
 
         Args:
             excel_path (str): Path to the Excel file
@@ -42,10 +45,21 @@ class ExcelParser:
         try:
             print(f"Reading Excel file: {Path(excel_path).name}")
 
-            # Read Excel file - try first sheet
-            df = pd.read_excel(excel_path, sheet_name=0)
+            # Read all sheets from Excel file
+            excel_file = pd.ExcelFile(excel_path)
+            all_sheets = excel_file.sheet_names
+            print(f"Found {len(all_sheets)} sheet(s): {all_sheets}")
 
-            print(f"Excel file contains {len(df)} rows and {len(df.columns)} columns")
+            # Combine data from all sheets
+            all_dfs = []
+            for sheet_name in all_sheets:
+                df = pd.read_excel(excel_path, sheet_name=sheet_name)
+                all_dfs.append(df)
+
+            # Concatenate all dataframes
+            df = pd.concat(all_dfs, ignore_index=True)
+
+            print(f"Combined data contains {len(df)} rows and {len(df.columns)} columns")
             print(f"Columns: {list(df.columns)}")
 
             # Identify relevant columns
@@ -71,6 +85,9 @@ class ExcelParser:
             if comment_col:
                 print(f"Using comment column: {comment_col}")
 
+            # Forward-fill video names (empty cells inherit from previous row)
+            df[video_col] = df[video_col].ffill()
+
             # Group data by video name
             result = {}
             processed_rows = 0
@@ -79,7 +96,7 @@ class ExcelParser:
                 try:
                     # Get video name
                     video_name = str(row[video_col]).strip()
-                    if pd.isna(row[video_col]) or not video_name:
+                    if pd.isna(row[video_col]) or not video_name or video_name == 'nan':
                         continue
 
                     # Remove file extension if present
@@ -96,11 +113,26 @@ class ExcelParser:
                         print(f"Warning: Could not parse timestamp '{timestamp_value}' in row {index + 2}")
                         continue
 
+                    # Extract animal_id from video_name (2nd item when split by underscore)
+                    video_name_parts = video_name.split('_')
+                    animal_id = video_name_parts[1] if len(video_name_parts) > 1 else video_name
+
+                    # Get arousal type (attention_to_left_hindpaw or attention_to_left_paw)
+                    # 'y' = pain, 'n' = nonpain, empty/NaN = ''
+                    arousal_value = str(row[arousal_col]).strip().lower() if arousal_col and not pd.isna(row[arousal_col]) else ''
+                    if arousal_value == 'y':
+                        arousal_type = 'pain'
+                    elif arousal_value == 'n':
+                        arousal_type = 'nonpain'
+                    else:
+                        arousal_type = ''
+
                     # Create timestamp info dictionary
                     timestamp_info = {
                         'time': timestamp_value,
                         'time_seconds': timestamp_seconds,
-                        'arousal_type': str(row[arousal_col]).strip() if arousal_col and not pd.isna(row[arousal_col]) else '',
+                        'arousal_type': arousal_type,
+                        'animal_id': animal_id,
                         'comments': str(row[comment_col]).strip() if comment_col and not pd.isna(row[comment_col]) else ''
                     }
 
@@ -149,6 +181,11 @@ class ExcelParser:
         """
         Convert various timestamp formats to seconds.
 
+        Handles formats like:
+        - (h:mm:ss) or (hh:mm:ss) - with parentheses
+        - HH:MM:SS or MM:SS - without parentheses
+        - Direct numbers (seconds)
+
         Args:
             timestamp_value: The timestamp value from Excel
 
@@ -164,7 +201,15 @@ class ExcelParser:
             if isinstance(timestamp_value, str):
                 timestamp_str = timestamp_value.strip()
 
-                # Try HH:MM:SS format
+                # Try to extract time from parentheses: (h:mm:ss) or (hh:mm:ss)
+                match = re.search(r'\((\d{1,2}):(\d{2}):(\d{2})\)', timestamp_str)
+                if match:
+                    hours = int(match.group(1))
+                    minutes = int(match.group(2))
+                    seconds = int(match.group(3))
+                    return hours * 3600 + minutes * 60 + seconds
+
+                # Try HH:MM:SS format without parentheses
                 if ':' in timestamp_str:
                     parts = timestamp_str.split(':')
                     if len(parts) == 3:  # HH:MM:SS

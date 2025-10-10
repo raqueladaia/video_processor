@@ -1,5 +1,6 @@
 # Video processing
 opencv-python>=4.8.0
+moviepy>=1.0.3
 
 # Excel file handling
 pandas>=2.0.0

@@ -51,10 +51,16 @@ def main():
         print("   - Multi-region support with custom naming")
         print("   - Batch processing and template saving\n")
 
+        print("5. Video Metadata Check:")
+        print("   - Extract comprehensive video metadata")
+        print("   - Compare multiple videos for consistency")
+        print("   - Generate reports in multiple formats (JSON, CSV, TXT)")
+        print("   - Validate videos against specified criteria\n")
+
         # Get user choice
         choice = get_choice_from_list(
             "Which tool would you like to use?",
-            ["Long Video Chopping", "Snippet Selection", "Adjust Brightness", "Crop Video", "Exit"]
+            ["Long Video Chopping", "Snippet Selection", "Adjust Brightness", "Crop Video", "Video Metadata Check", "Exit"]
         )
 
         if choice == "Long Video Chopping":
@@ -104,6 +110,18 @@ def main():
                 print("Please ensure all required files are present.")
             except Exception as e:
                 print(f"Error running Crop Video: {e}")
+
+        elif choice == "Video Metadata Check":
+            print_section_header("Starting Video Metadata Check")
+            try:
+                # Import and run video metadata check
+                from video_metadata_check import main as vmc_main
+                vmc_main.main()
+            except ImportError:
+                print("Error: Video Metadata Check module not found.")
+                print("Please ensure all required files are present.")
+            except Exception as e:
+                print(f"Error running Video Metadata Check: {e}")
 
         elif choice == "Exit":
             print("Thank you for using Video Processing Tools!")

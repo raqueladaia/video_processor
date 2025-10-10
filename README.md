@@ -1,8 +1,11 @@
 # Video Processing Tools
 
-A comprehensive toolkit for video processing with two main capabilities:
+A comprehensive toolkit for video processing with five main capabilities:
 1. **Long Video Chopping** - Segment videos into smaller consecutive chunks
 2. **Snippet Selection** - Extract specific segments around timestamps of interest
+3. **Adjust Brightness** - GUI tool for adjusting video brightness and contrast
+4. **Crop Video** - GUI tool for cropping videos into multiple regions
+5. **Video Metadata Check** - Extract and analyze comprehensive video metadata
 
 ## Features
 
@@ -23,6 +26,15 @@ A comprehensive toolkit for video processing with two main capabilities:
 - Generates CSV reports with metadata
 - Handles missing videos gracefully
 - Fast, lossless video extraction
+
+### Video Metadata Check
+- Extracts comprehensive video metadata (FPS, resolution, duration, etc.)
+- Compares multiple videos for consistency
+- Validates videos against user-specified criteria
+- Detects anomalies and outliers
+- Generates reports in multiple formats (JSON, CSV, TXT)
+- Supports both OpenCV and FFprobe for maximum compatibility
+- Read-only operations - never modifies original files
 
 ## Installation
 
@@ -90,6 +102,34 @@ Features:
 - Missing video handling
 - Already processed video detection
 - CSV report generation
+
+### Video Metadata Check
+Run directly:
+```bash
+python video_metadata_check/main.py
+```
+
+Features:
+- **Single or batch analysis**: Analyze one video or entire directories
+- **Comprehensive metadata extraction**:
+  - Recording frame rate (from codec)
+  - Playback frame rate
+  - Actual frame rate (calculated from frame count/duration)
+  - Duration and length
+  - Number of frames
+  - Resolution (width x height)
+  - File size
+  - Video/audio codecs
+  - Bitrate
+- **Comparison mode**: Compare multiple videos for consistency
+  - Select which fields to compare
+  - Validate against user-specified criteria
+  - Detect anomalies and outliers
+- **Multiple output formats**:
+  - Console output with formatted tables
+  - JSON export for programmatic use
+  - CSV export for spreadsheets
+  - Human-readable TXT reports
 
 ## Excel File Format
 
@@ -175,6 +215,50 @@ output_directory/
 └── ...
 ```
 
+### Video Metadata Check
+Reports are generated in multiple formats with timestamped filenames:
+
+```
+output_directory/
+├── video_metadata_20231115_143022.json        # Structured JSON report
+├── video_metadata_20231115_143022.csv         # Spreadsheet-compatible CSV
+└── video_metadata_report_20231115_143022.txt  # Human-readable text report
+```
+
+Example console output:
+```
+================================================================================
+VIDEO METADATA REPORT
+================================================================================
+Total videos analyzed: 3
+Report generated: 2023-11-15 14:30:22
+================================================================================
+
+[Video 1] experiment_video_001.mp4
+--------------------------------------------------------------------------------
+  Recording Frame Rate........... 30.00 FPS
+  Playback Frame Rate............ 30.00 FPS
+  Actual Frame Rate.............. 29.97 FPS
+  Duration....................... 00:05:30
+  Number of Frames............... 9,900
+  Resolution..................... 1920x1080
+  File Size...................... 245.67 MB
+
+================================================================================
+COMPARISON RESULTS
+================================================================================
+
+✓ Fields that MATCH across all videos:
+  • Frame Rate (FPS): 30.00
+  • Resolution: 1920x1080
+  • Video Codec: h264
+
+✗ Fields that DIFFER across videos:
+  • Duration:
+    - 00:05:30: 2 video(s)
+    - 00:10:15: 1 video(s)
+```
+
 ## Project Structure
 
 ```
@@ -188,12 +272,21 @@ video_processing/
 ├── long_video_chopping/            # Video chopping module
 │   ├── main.py                     # Entry point
 │   └── video_processor.py          # Core processing
-└── snippet_selection/              # Snippet extraction module
+├── snippet_selection/              # Snippet extraction module
+│   ├── main.py                     # Entry point
+│   ├── excel_parser.py             # Excel file handling
+│   ├── video_extractor.py          # Video extraction
+│   ├── csv_manager.py              # CSV reporting
+│   └── file_manager.py             # File discovery
+├── adjust_brightness/              # Brightness adjustment module
+│   └── main.py                     # GUI application
+├── crop_video/                     # Video cropping module
+│   └── main.py                     # GUI application
+└── video_metadata_check/           # Video metadata analysis module
     ├── main.py                     # Entry point
-    ├── excel_parser.py             # Excel file handling
-    ├── video_extractor.py          # Video extraction
-    ├── csv_manager.py              # CSV reporting
-    └── file_manager.py             # File discovery
+    ├── metadata_extractor.py       # Metadata extraction
+    ├── metadata_comparator.py      # Video comparison
+    └── report_generator.py         # Report generation
 ```
 
 ## Error Handling

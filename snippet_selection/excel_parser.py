@@ -28,15 +28,33 @@ class ExcelParser:
         self.arousal_columns = ['arousal', 'arousal_type', 'type', 'category', 'attention_to_left_hindpaw', 'attention_to_left_paw']
         self.comment_columns = ['comment', 'comments', 'description', 'notes']
 
-    def parse_excel(self, excel_path: str) -> Dict[str, List[Dict[str, Any]]]:
+    def get_sheet_names(self, excel_path: str) -> List[str]:
+        """
+        Get list of sheet names from Excel file.
+
+        Args:
+            excel_path (str): Path to the Excel file
+
+        Returns:
+            List[str]: List of sheet names in the Excel file
+        """
+        try:
+            excel_file = pd.ExcelFile(excel_path)
+            return excel_file.sheet_names
+        except Exception as e:
+            print(f"Error reading Excel file: {e}")
+            return []
+
+    def parse_excel(self, excel_path: str, sheet_names: Optional[List[str]] = None) -> Dict[str, List[Dict[str, Any]]]:
         """
         Parse Excel file and extract timestamp data.
 
-        Reads all sheets in the Excel file and combines the data.
         Handles forward-filling of video names and extracts animal_id from video names.
 
         Args:
             excel_path (str): Path to the Excel file
+            sheet_names (Optional[List[str]]): List of specific sheet names to read.
+                If None, reads all sheets in the file.
 
         Returns:
             Dict[str, List[Dict[str, Any]]]: Dictionary mapping video names to
@@ -45,14 +63,35 @@ class ExcelParser:
         try:
             print(f"Reading Excel file: {Path(excel_path).name}")
 
-            # Read all sheets from Excel file
+            # Read sheet information
             excel_file = pd.ExcelFile(excel_path)
             all_sheets = excel_file.sheet_names
-            print(f"Found {len(all_sheets)} sheet(s): {all_sheets}")
+            print(f"Excel file contains {len(all_sheets)} sheet(s): {all_sheets}")
 
-            # Combine data from all sheets
+            # Determine which sheets to process
+            if sheet_names is None:
+                # Process all sheets
+                sheets_to_process = all_sheets
+                print(f"Processing all {len(sheets_to_process)} sheet(s)")
+            else:
+                # Validate requested sheets exist
+                sheets_to_process = []
+                for sheet_name in sheet_names:
+                    if sheet_name in all_sheets:
+                        sheets_to_process.append(sheet_name)
+                    else:
+                        print(f"Warning: Sheet '{sheet_name}' not found in Excel file")
+
+                if not sheets_to_process:
+                    print("Error: None of the requested sheets were found")
+                    return {}
+
+                print(f"Processing {len(sheets_to_process)} sheet(s): {sheets_to_process}")
+
+            # Combine data from selected sheets
             all_dfs = []
-            for sheet_name in all_sheets:
+            for sheet_name in sheets_to_process:
+                print(f"  Reading sheet: {sheet_name}")
                 df = pd.read_excel(excel_path, sheet_name=sheet_name)
                 all_dfs.append(df)
 

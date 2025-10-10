@@ -14,12 +14,15 @@ A comprehensive toolkit for video processing with two main capabilities:
 - Creates organized output folder structure
 
 ### Snippet Selection
-- Extracts video snippets around specific timestamps
-- Reads timestamp data from Excel files
+- Extracts video snippets around specific timestamps using FFmpeg
+- Reads timestamp data from Excel files (supports multiple sheets)
 - Configurable duration before/after each timestamp
 - Supports videos in subdirectories
+- Automatic animal ID extraction from video names
+- Pain/non-pain classification support
 - Generates CSV reports with metadata
 - Handles missing videos gracefully
+- Fast, lossless video extraction
 
 ## Installation
 
@@ -42,11 +45,12 @@ python main.py
 ## Requirements
 
 - Python 3.7+
+- FFmpeg (system installation required)
 - OpenCV (cv2)
-- MoviePy
 - Pandas
 - openpyxl
 - NumPy
+- Pillow
 
 ## Usage
 
@@ -76,8 +80,13 @@ python snippet_selection/main.py
 
 Features:
 - Excel file parsing for timestamp data
+- **Flexible sheet selection**: Choose all sheets, specific sheets, or ranges
 - Flexible column name recognition
+- Forward-fills empty video name cells
+- Extracts animal ID from video names (2nd underscore-separated item)
+- Pain/non-pain classification from attention columns
 - Configurable before/after duration (default: -5s/+10s)
+- Fast FFmpeg-based extraction
 - Missing video handling
 - Already processed video detection
 - CSV report generation
@@ -86,18 +95,49 @@ Features:
 
 For snippet selection, the Excel file should contain:
 
+**Sheet Selection**: The program will ask which sheets to process:
+- Process all sheets at once
+- Select specific sheets by number (e.g., `1`, `1,3`, `1-3`, or `all`)
+- Supports individual selections, comma-separated lists, and ranges
+
 Required columns (any of these names):
 - **Video names**: `video`, `video_name`, `file`, `filename`, `file_name`
-- **Timestamps**: `time`, `timestamp`, `time_of_interest`, `start_time`
+  - Empty cells automatically inherit the value from the previous row
+  - Animal ID is extracted from the 2nd underscore-separated segment (e.g., `2522_2616_bs` → animal_id: `2616`)
+- **Timestamps**: `time`, `timestamp`, `time_of_interest`, `start_time`, `time_awakening_onset`
 
 Optional columns:
-- **Arousal type**: `arousal`, `arousal_type`, `type`, `category`
+- **Pain/Non-pain classification**: `arousal`, `arousal_type`, `type`, `category`, `attention_to_left_hindpaw`, `attention_to_left_paw`
+  - `y` or `Y` = pain
+  - `n` or `N` = nonpain
+  - Empty = unclassified
 - **Comments**: `comment`, `comments`, `description`, `notes`
 
 Timestamp formats supported:
+- With parentheses: `(4:52:13)` or `(10:23:45)`
+- Without parentheses: `0:02:05` or `2:05`
 - Seconds: `125.5`
-- MM:SS: `2:05`
-- HH:MM:SS: `0:02:05`
+
+## Use Cases
+
+### Pain vs Non-Pain Awakenings Analysis
+The snippet selection module is specifically designed for analyzing pain and non-pain awakenings in animal behavior studies:
+
+1. **Input**: Excel file with awakening timestamps and pain/non-pain classifications
+   - Supports multiple animals across different videos
+   - Automatically extracts animal IDs from video filenames
+   - Handles both classified and unclassified awakenings
+
+2. **Processing**:
+   - Searches recursively through video directories
+   - Extracts snippets around each awakening event
+   - Uses FFmpeg for fast, lossless extraction
+   - Default: 5 seconds before + 10 seconds after each timestamp
+
+3. **Output**:
+   - Organized snippets with descriptive filenames
+   - CSV report for tracking and analysis
+   - Ready for behavioral annotation or machine learning
 
 ## Output Structure
 
@@ -114,10 +154,14 @@ output_directory/
 ```
 
 ### Snippet Selection
+Snippets are named using the format: `{animal_id}_{pain|nonpain}_{timestamp}.{ext}`
+
 ```
 output_directory/
-├── video1_123045_arousal_type.mp4
-├── video1_124530_arousal_type.mp4
+├── 2616_pain_045213.mp4              # Animal 2616, pain awakening at 04:52:13
+├── 3007_nonpain_033207.mp4           # Animal 3007, non-pain awakening at 03:32:07
+├── 3008_pain_033425.mp4              # Animal 3008, pain awakening at 03:34:25
+├── 2616_073607.mp4                   # Animal 2616, unclassified awakening at 07:36:07
 ├── snippet_processing_report_YYYYMMDD_HHMMSS.csv
 └── ...
 ```

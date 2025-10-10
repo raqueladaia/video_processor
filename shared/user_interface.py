@@ -180,6 +180,100 @@ def get_choice_from_list(prompt: str, choices: List[str], show_numbers: bool = T
         return get_user_input("Enter your choice: ", validate_choice, error_msg)
 
 
+def get_multiple_choices_from_list(prompt: str, choices: List[str], allow_all: bool = True) -> List[str]:
+    """
+    Get multiple user choices from a list of options.
+
+    User can select individual items by number, ranges (e.g., 1-3), or 'all'.
+
+    Args:
+        prompt (str): Prompt to display to user
+        choices (List[str]): List of available choices
+        allow_all (bool): Whether to allow 'all' as an option
+
+    Returns:
+        List[str]: List of selected choices
+    """
+    print(prompt)
+    print("\nAvailable options:")
+    for i, choice in enumerate(choices, 1):
+        print(f"{i}. {choice}")
+
+    if allow_all:
+        print("\nYou can enter:")
+        print("  - Individual numbers (e.g., '1')")
+        print("  - Multiple numbers separated by commas (e.g., '1,3,5')")
+        print("  - Ranges (e.g., '1-3' for items 1 through 3)")
+        print("  - 'all' to select all options")
+    else:
+        print("\nYou can enter:")
+        print("  - Individual numbers (e.g., '1')")
+        print("  - Multiple numbers separated by commas (e.g., '1,3,5')")
+        print("  - Ranges (e.g., '1-3' for items 1 through 3)")
+
+    def validate_and_parse(value: str) -> Optional[List[int]]:
+        """
+        Validate and parse user input into list of indices.
+
+        Returns None if invalid, list of indices (1-based) if valid.
+        """
+        value = value.strip().lower()
+
+        # Handle 'all' option
+        if allow_all and value == 'all':
+            return list(range(1, len(choices) + 1))
+
+        # Parse comma-separated values
+        selected_indices = []
+        parts = value.split(',')
+
+        try:
+            for part in parts:
+                part = part.strip()
+
+                # Check if it's a range (e.g., '1-3')
+                if '-' in part:
+                    range_parts = part.split('-')
+                    if len(range_parts) != 2:
+                        return None
+                    start = int(range_parts[0].strip())
+                    end = int(range_parts[1].strip())
+
+                    if start < 1 or end > len(choices) or start > end:
+                        return None
+
+                    selected_indices.extend(range(start, end + 1))
+                else:
+                    # Single number
+                    num = int(part)
+                    if num < 1 or num > len(choices):
+                        return None
+                    selected_indices.append(num)
+
+            # Remove duplicates and sort
+            selected_indices = sorted(list(set(selected_indices)))
+            return selected_indices
+
+        except ValueError:
+            return None
+
+    # Get and validate input
+    while True:
+        user_input = input("Enter your selection: ").strip()
+        parsed_indices = validate_and_parse(user_input)
+
+        if parsed_indices is not None:
+            # Convert indices to actual choices
+            selected_choices = [choices[i - 1] for i in parsed_indices]
+            print(f"\nSelected {len(selected_choices)} option(s): {', '.join(selected_choices)}")
+            return selected_choices
+        else:
+            if allow_all:
+                print("Invalid input. Please enter numbers (1-" + str(len(choices)) + "), ranges, or 'all'.")
+            else:
+                print("Invalid input. Please enter numbers (1-" + str(len(choices)) + ") or ranges.")
+
+
 def print_progress(current: int, total: int, description: str = "Processing"):
     """
     Print a simple progress indicator.

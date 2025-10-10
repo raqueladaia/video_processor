@@ -17,7 +17,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 from shared.user_interface import (
     get_file_path, get_directory_path, get_positive_number,
     get_yes_no_choice, print_section_header, print_file_info,
-    get_choice_from_list, print_progress
+    get_choice_from_list, get_multiple_choices_from_list, print_progress
 )
 from shared.file_utils import find_video_files, validate_input_path, create_output_directory
 from shared.video_utils import get_video_info, format_duration
@@ -87,9 +87,38 @@ def main():
         video_extractor = VideoExtractor(output_dir, before_duration, after_duration)
         csv_manager = CSVManager(output_dir)
 
-        # Parse Excel file
-        print("Reading Excel file...")
-        timestamps_data = excel_parser.parse_excel(excel_file)
+        # Get available sheets from Excel file
+        print("Checking Excel file structure...")
+        available_sheets = excel_parser.get_sheet_names(excel_file)
+
+        if not available_sheets:
+            print("Error: Could not read sheets from Excel file.")
+            return
+
+        # Ask user which sheets to process
+        sheets_to_process = None  # None means all sheets
+
+        if len(available_sheets) > 1:
+            print(f"\nExcel file contains {len(available_sheets)} sheet(s)")
+
+            sheet_choice = get_choice_from_list(
+                "Which sheets would you like to process?",
+                ["All sheets", "Select specific sheet(s)"]
+            )
+
+            if sheet_choice == "Select specific sheet(s)":
+                sheets_to_process = get_multiple_choices_from_list(
+                    "\nSelect which sheets to process:",
+                    available_sheets,
+                    allow_all=True
+                )
+        else:
+            print(f"\nExcel file contains 1 sheet: {available_sheets[0]}")
+            sheets_to_process = available_sheets
+
+        # Parse Excel file with selected sheets
+        print("\nReading Excel file...")
+        timestamps_data = excel_parser.parse_excel(excel_file, sheets_to_process)
 
         if not timestamps_data:
             print("No valid timestamp data found in Excel file.")

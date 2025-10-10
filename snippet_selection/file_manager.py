@@ -75,6 +75,11 @@ class FileManager:
         """
         Match video names from timestamp data with actual video files.
 
+        Supports multiple matching strategies:
+        1. Exact match (video name equals file name without extension)
+        2. Partial match (video name is contained in file name)
+        3. Fuzzy match (similar names using difflib)
+
         Args:
             timestamp_data (Dict[str, List]): Timestamp data keyed by video name
             found_videos (List[str], optional): List of found video files
@@ -98,12 +103,30 @@ class FileManager:
             for excel_video_name in timestamp_data.keys():
                 excel_name_lower = excel_video_name.lower()
 
-                # Direct match first
+                # Strategy 1: Direct exact match
                 if excel_name_lower in video_name_to_path:
                     matches[excel_video_name] = video_name_to_path[excel_name_lower]
                     continue
 
-                # Try fuzzy matching for close names
+                # Strategy 2: Partial match - check if excel name is contained in any video file name
+                partial_matches = []
+                for video_name, video_path in video_name_to_path.items():
+                    if excel_name_lower in video_name:
+                        partial_matches.append((video_name, video_path))
+
+                # If we found partial matches, use the shortest one (most specific)
+                if len(partial_matches) == 1:
+                    print(f"Partial match: '{excel_video_name}' -> '{Path(partial_matches[0][1]).stem}'")
+                    matches[excel_video_name] = partial_matches[0][1]
+                    continue
+                elif len(partial_matches) > 1:
+                    # Multiple partial matches - choose the shortest (most specific)
+                    partial_matches.sort(key=lambda x: len(x[0]))
+                    print(f"Partial match (best of {len(partial_matches)}): '{excel_video_name}' -> '{Path(partial_matches[0][1]).stem}'")
+                    matches[excel_video_name] = partial_matches[0][1]
+                    continue
+
+                # Strategy 3: Fuzzy matching for close names
                 best_match = self._find_best_match(excel_video_name, list(video_name_to_path.keys()))
 
                 if best_match:

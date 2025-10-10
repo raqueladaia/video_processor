@@ -100,6 +100,15 @@ For snippet selection, the Excel file should contain:
 - Select specific sheets by number (e.g., `1`, `1,3`, `1-3`, or `all`)
 - Supports individual selections, comma-separated lists, and ranges
 
+**Video Name Matching**: The program uses intelligent matching strategies:
+1. **Exact match**: Video name in Excel exactly matches file name (without extension)
+2. **Partial match**: Video name in Excel is contained in file name
+   - Example: Excel has `2522_2616_bs` → matches file `2522_2616_bs_recording_001.mp4`
+3. **Fuzzy match**: Similar names using similarity scoring (for typos/variations)
+
+**Supported Video Formats**: `.mp4`, `.avi`, `.mov`, `.mkv`, `.wmv`, `.flv`, `.webm`, `.m4v`
+- Works with videos that have no audio track
+
 Required columns (any of these names):
 - **Video names**: `video`, `video_name`, `file`, `filename`, `file_name`
   - Empty cells automatically inherit the value from the previous row

@@ -54,6 +54,35 @@ pip install -r requirements.txt
 python main.py
 ```
 
+## FFmpeg Installation (Windows)
+
+This project requires FFmpeg to be installed and added to your system PATH. Follow these steps:
+
+### Step 0: Download FFmpeg
+Download FFmpeg (ffmpeg-git-full.7z) from https://www.gyan.dev/ffmpeg/builds/
+
+### Step 1: Find and copy the FFmpeg bin folder path
+1. Extract the downloaded FFmpeg archive to a location like `C:\ffmpeg`
+2. Inside the extracted folder, find and open the `bin` folder
+   - The full path will look something like `C:\ffmpeg\bin`
+3. Copy this full path to your clipboard
+
+### Step 2: Add the path to the environment variables
+1. Press the Windows key + X and select "System"
+2. Go to "Advanced system settings"
+3. In the System Properties window, click on "Environment Variables"
+4. Under "System variables," find and select the `Path` variable, then click "Edit"
+5. Click "New" and paste the path you copied in Step 1
+6. Click "OK" on all open windows to save the changes
+
+### Step 3: Verify the installation
+1. Open Command Prompt (search for `cmd` in the Start Menu)
+2. Type the following command and press Enter:
+```bash
+ffmpeg -version
+```
+3. If the installation was successful, you will see the FFmpeg version information displayed
+
 ## Requirements
 
 - Python 3.7+
